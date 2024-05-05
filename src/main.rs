@@ -10,11 +10,11 @@ fn main() {
     println!("{gb}\n");
 
     gb.set_position(4);
-    gb.remove();
+    assert_eq!("h4", gb.remove().unwrap());
     gb.set_position(6);
-    gb.remove();
+    assert_eq!(None, gb.remove());
     gb.set_position(0);
-    gb.remove();
+    assert_eq!("h0", gb.remove().unwrap());
     println!("{gb}\n");
 
     gb.insert("h0".to_string());

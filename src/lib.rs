@@ -88,15 +88,14 @@ impl<T: Display> GapBuffer<T> {
     /// +---------------------+
     /// | 0 | 1 | 2 | 3 | Gap |
     /// +---------------------+
-    pub fn remove(&mut self) {
+    pub fn remove(&mut self) -> Option<T> {
         if self.gap.end == self.buffer.capacity() {
-            return;
+            return None;
         }
 
-        unsafe {
-            std::ptr::read(self.buffer.as_ptr().add(self.gap.end));
-        };
+        let elem = unsafe { std::ptr::read(self.buffer.as_ptr().add(self.gap.end)) };
         self.gap.end += 1;
+        Some(elem)
     }
 
     pub fn insert_iter<I: IntoIterator<Item = T>>(&mut self, elems: I) {
