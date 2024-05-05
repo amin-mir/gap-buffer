@@ -11,7 +11,6 @@ pub struct GapBuffer<T: Display> {
 }
 
 impl<T: Display> GapBuffer<T> {
-    // Constructs a new GapBuffer by copying bytes into a new buffer.
     pub fn new(data: Vec<T>) -> Self {
         let mut buffer: Vec<T> = Vec::with_capacity(data.len() + GAP_SIZE);
         let gap = 0..GAP_SIZE;
@@ -48,12 +47,6 @@ impl<T: Display> GapBuffer<T> {
         unsafe { &*self.buffer.as_ptr().add(idx) }
     }
 
-    pub fn get_ref(&mut self) -> T {
-        let idx = self.gap.end;
-        self.gap.end += 1;
-        unsafe { std::ptr::read(self.buffer.as_ptr().add(idx)) }
-    }
-
     pub fn set_position(&mut self, idx: usize) {
         if idx > self.data_len() {
             panic!("index out of bounds");
@@ -84,23 +77,24 @@ impl<T: Display> GapBuffer<T> {
     /// Removes the element at gap.end. Given the following buffer
     /// where pos = 4.
     ///
-    /// -----------------------
-    /// 0 | 1 | 2 | 3 | Gap | 4
-    /// -----------------------
-    ///                       |
-    ///                     remove
+    /// +-------------------------+
+    /// | 0 | 1 | 2 | 3 | Gap | 4 |
+    /// +-------------------------+
+    ///                         |
+    ///                       remove
     ///
     /// Issuing a remove will result in:
-    /// -------------------
-    /// 0 | 1 | 2 | 3 | Gap
-    /// -------------------
+    ///
+    /// +---------------------+
+    /// | 0 | 1 | 2 | 3 | Gap |
+    /// +---------------------+
     pub fn remove(&mut self) {
         if self.gap.end == self.buffer.capacity() {
             return;
         }
 
         unsafe {
-            std::ptr::drop_in_place(self.buffer.as_mut_ptr().add(self.gap.end));
+            std::ptr::read(self.buffer.as_ptr().add(self.gap.end));
         };
         self.gap.end += 1;
     }
@@ -164,17 +158,6 @@ impl<T: Display> GapBuffer<T> {
         self.buffer.capacity() - self.gap.len()
     }
 }
-
-// impl<T> Drop for GapBuffer<T> {
-//     fn drop(&mut self) {
-//         for i in 0..self.gap.start {
-//             unsafe { std::ptr::drop_in_place(self.data.as_mut_ptr().add(i)) };
-//         }
-//         for i in self.gap.end..self.data.len() {
-//             unsafe { std::ptr::drop_in_place(self.data.as_mut_ptr().add(i)) };
-//         }
-//     }
-// }
 
 impl<T: Display> Drop for GapBuffer<T> {
     fn drop(&mut self) {
